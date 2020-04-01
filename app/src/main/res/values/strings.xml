@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MUCOM88</string>
+    <string name="drawer_open">ドロアを開く</string>
+    <string name="drawer_close">ドロアを閉じる</string>
+    <string name="app_title_long">MUCOM88 for Android</string>
+    <string name="version">Version 200401</string>
+</resources>

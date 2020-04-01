@@ -1,0 +1,69 @@
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:id="@+id/group_listening"
+        android:checkableBehavior="single">
+
+    <item
+        android:id="@+id/nav_load_music"
+        android:checkable="false"
+        android:enabled="true"
+        android:title="曲ファイル選択"
+        android:visible="true" />
+    <item
+        android:id="@+id/nav_select_pcm"
+        android:checkable="false"
+        android:enabled="true"
+        android:title="PCMファイル選択"
+        android:visible="true" />
+    <item
+        android:id="@+id/nav_select_voice"
+        android:checkable="false"
+        android:enabled="true"
+        android:title="VOICEファイル選択"
+        android:visible="true" />
+    </group>
+
+    <group android:id="@+id/group_create"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_new_file"
+            android:checkable="false"
+            android:enabled="true"
+            android:title="新規"
+            android:visible="true" />
+
+        <item
+            android:id="@+id/nav_save_file"
+            android:checkable="false"
+            android:enabled="true"
+            android:title="名前をつけて保存"
+            android:visible="true" />
+
+    </group>
+
+    <group android:id="@+id/group_other"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_clear_cache"
+            android:checkable="false"
+            android:enabled="true"
+            android:title="キャッシュクリア"
+            android:visible="true" />
+        <item
+            android:id="@+id/nav_help"
+            android:checkable="false"
+            android:enabled="true"
+            android:title="説明表示"
+            android:visible="true" />
+        <item
+            android:id="@+id/nav_license"
+            android:checkable="false"
+            android:enabled="true"
+            android:title="license.txt表示"
+            android:visible="true" />
+
+    </group>
+
+
+</menu>
