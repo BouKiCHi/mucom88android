@@ -1,6 +1,8 @@
 package com.bkc.mucom88;
 
 import android.content.Context;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.EditText;
 
 import java.io.File;
@@ -23,6 +25,22 @@ public class TextEditor {
         textFile = file;
         et = editText;
     }
+
+    public boolean isDirty;
+
+    private TextWatcher textWatcher = new TextWatcher() {
+
+        public void afterTextChanged(Editable s) {
+        }
+
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+
+        public void onTextChanged(CharSequence s, int start, int before,
+                                  int count) {
+            isDirty = true;
+        }
+    };
 
     // 編集ファイルの読み込み
     public void loadFile(EditText editText) {

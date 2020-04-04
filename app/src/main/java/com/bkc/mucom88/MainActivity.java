@@ -27,12 +27,10 @@ import com.google.android.material.navigation.NavigationView;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.util.Arrays;
 
 public class MainActivity extends AudioBaseActivity implements
         View.OnClickListener, NavigationView.OnNavigationItemSelectedListener {
@@ -49,7 +47,7 @@ public class MainActivity extends AudioBaseActivity implements
     public static final String SONG_MUC = "song.muc";
 
     // ファイルパス
-    private String musicFilePath;
+    private String mmlFilePath;
     private String voiceFilePath;
     private String pcmFilePath;
 
@@ -87,9 +85,6 @@ public class MainActivity extends AudioBaseActivity implements
         NavigationView nv = (NavigationView) findViewById(R.id.nav_view);
         nv.setNavigationItemSelectedListener(this);
 
-        // 確認
-        checkExternalStoragePermission();
-
         // サービスへの接続
         startService();
     }
@@ -103,6 +98,16 @@ public class MainActivity extends AudioBaseActivity implements
 
         // 設定読み出し
         loadSetting();
+
+        // 許可がない場合
+        if (!GeneralUtils.checkPermission(this)) {
+            if (GeneralUtils.shouldShowRationale(this)) {
+                showHelp();
+                GeneralUtils.requestPermission(this, REQUEST_PERMISSION);
+            } else {
+                GeneralUtils.requestPermission(this, REQUEST_PERMISSION);
+            }
+        }
 
         // 曲ファイル読み出し
         EditText et = null;
@@ -150,17 +155,16 @@ public class MainActivity extends AudioBaseActivity implements
     // 画面更新　レンダラ動作時
     @Override
     protected void updateInformation() {
-        if (showResultFlag && renderer.isPlaying()) {
+        if (showResultFlag && renderer.hasMessage()) {
             showResultFlag = false;
             showResult();
         }
     }
 
-
     // 設定
     private void loadSetting() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        musicFilePath = prefs.getString(MUSIC_FILE_PATH, null);
+        mmlFilePath = prefs.getString(MUSIC_FILE_PATH, null);
         pcmFilePath = prefs.getString(PCM_FILE_PATH, null);
         voiceFilePath = prefs.getString(VOICE_FILE_PATH, null);
     }
@@ -168,7 +172,7 @@ public class MainActivity extends AudioBaseActivity implements
     private void saveSetting() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(MUSIC_FILE_PATH, musicFilePath);
+        editor.putString(MUSIC_FILE_PATH, mmlFilePath);
         editor.putString(PCM_FILE_PATH, pcmFilePath);
         editor.putString(VOICE_FILE_PATH, voiceFilePath);
         editor.commit();
@@ -188,8 +192,8 @@ public class MainActivity extends AudioBaseActivity implements
         switch (v.getId()) {
             case R.id.play_button:
                 editorSave();
-                songFilename = musicFilePath == null ? "" : new File(musicFilePath).getName();
-                controlRenderer(rendererCommand.Play);
+                songFilepath = mmlFilePath == null ? "" : mmlFilePath;
+                playSong();
                 break;
             case R.id.stop_button:
                 controlRenderer(rendererCommand.Stop);
@@ -198,39 +202,88 @@ public class MainActivity extends AudioBaseActivity implements
         }
     }
 
+    private void playSong() {
+        String mucFilePath = getWorkMucFile().getPath();
+        if (songFilepath == mucFilePath) return;
+
+        File srcFile = new File(mucFilePath);
+        File destFile = new File(songFilepath);
+
+        byte[] srcData = GeneralUtils.readAllBytes(srcFile);
+        byte[] destData = GeneralUtils.readAllBytes(destFile);
+
+        // ファイルの比較。同じ場合は保存しない
+        if (Arrays.equals(srcData, destData)) {
+            controlRenderer(rendererCommand.Play);
+            return;
+        }
+
+        saveMML(true);
+    }
+
+    private void saveMML(final boolean playSong) {
+        selectDialog("MMLを保存しますか？", new DialogCallback() {
+            @Override
+            public void ok(DialogInterface dialog, int id) {
+                saveWorkSong();
+                if (playSong) {
+                    controlRenderer(rendererCommand.Play);
+                }
+            }
+
+            @Override
+            public void cancel(DialogInterface dialog, int id) {
+            }
+        });
+    }
+
+    private void reloadMML() {
+        selectDialog("再読み込みしますか？", new DialogCallback() {
+            @Override
+            public void ok(DialogInterface dialog, int id) {
+                File destFile = getWorkMucFile();
+                File srcFile = new File(mmlFilePath);
+                GeneralUtils.copyFile(srcFile, destFile);
+                editorLoad();
+            }
+
+            @Override
+            public void cancel(DialogInterface dialog, int id) {
+            }
+        });
+    }
+
+
 
     // ドロワからのメニュー選択
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
         File file = null;
         File directory = Environment.getExternalStorageDirectory();
-        File songDirectory = (musicFilePath != null) ? new File(musicFilePath).getParentFile() : directory;
+        File songDirectory = (mmlFilePath != null) ? new File(mmlFilePath).getParentFile() : directory;
 
         switch(menuItem.getItemId()) {
             case R.id.nav_new_file:
                 backToEditor();
-                musicFilePath = new File(directory,"song.muc").getPath();
+                mmlFilePath = getWorkMucFile().getPath();
                 makeNewSong();
                 break;
-            case R.id.nav_save_file:
-                if (musicFilePath != null) file = new File(musicFilePath);
+            case R.id.nav_save:
+                saveMML(false);
+                break;
+
+            case R.id.nav_reload:
+                reloadMML();
+                break;
+            case R.id.nav_save_as_file:
+                if (mmlFilePath != null) file = new File(mmlFilePath);
                 if (file == null) file = new File(directory,"song.muc");
                 callSaveDialog(directory, file, requestCodeEnum.SaveMusic);
                 break;
             case R.id.nav_load_music:
-                if (musicFilePath != null) file = new File(musicFilePath);
+                if (mmlFilePath != null) file = new File(mmlFilePath);
                 if (file == null) file = new File(directory,"song.muc");
                 callFileDialog(directory, file, requestCodeEnum.LoadMusic);
-                break;
-            case R.id.nav_select_pcm:
-                if (pcmFilePath != null) file = new File(pcmFilePath);
-                if (file == null) file = new File(songDirectory, "mucompcm.bin");
-                callFileDialog(directory, file, requestCodeEnum.SelectPCM);
-                break;
-            case R.id.nav_select_voice:
-                if (voiceFilePath != null) file = new File(voiceFilePath);
-                if (file == null) file = new File(songDirectory, "voice.dat");
-                callFileDialog(directory, file, requestCodeEnum.SelectVoice);
                 break;
             case R.id.nav_license:
                 showLicense();
@@ -248,6 +301,22 @@ public class MainActivity extends AudioBaseActivity implements
         DrawerLayout mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerLayout.closeDrawers();
         return true;
+    }
+
+    private File getWorkMucFile() {
+        return new File(getCacheDir(), SONG_MUC);
+    }
+
+    // ワークファイルの保存
+    private void saveWorkSong() {
+        if (mmlFilePath == null) return;
+        File destFile = new File(mmlFilePath);
+        File srcFile = getWorkMucFile();
+        if (srcFile.getAbsolutePath() != destFile.getAbsolutePath())  {
+            if (GeneralUtils.copyFile(srcFile, destFile)) {
+                showToast(SUCCESS_SAVE + destFile.getName());
+            }
+        }
     }
 
     interface DialogCallback {
@@ -342,6 +411,10 @@ public class MainActivity extends AudioBaseActivity implements
     protected void onActivityResult(int request, int result, Intent data) {
         if (result != RESULT_OK) return;
         dataCopy(request, data);
+        loadSong();
+    }
+
+    private void loadSong() {
         editorLoad();
         saveSetting();
     }
@@ -354,15 +427,15 @@ public class MainActivity extends AudioBaseActivity implements
         // ファイル保存
         if (request == requestCodeEnum.SaveMusic.ordinal()) {
             destFile = srcFile;
-            srcFile = new File(getCacheDir(), SONG_MUC);
-            musicFilePath = destFile.getPath();
+            srcFile = getWorkMucFile();
+            mmlFilePath = destFile.getPath();
             showResult = false;
         }
 
         // 音楽ファイル読み出し
         if (request == requestCodeEnum.LoadMusic.ordinal()) {
-            destFile = new File(getCacheDir(), SONG_MUC);
-            musicFilePath = srcFile.getPath();
+            destFile = getWorkMucFile();
+            mmlFilePath = srcFile.getPath();
             showResult = false;
         }
 
@@ -379,41 +452,23 @@ public class MainActivity extends AudioBaseActivity implements
         }
 
         if (destFile != null) {
-            boolean Result = copyFile(srcFile, destFile);
-            if (Result) {
-                if (showResult) showToast(SUCCESS_COPY + srcFile.getName());
-                if (request == requestCodeEnum.SaveMusic.ordinal()) {
-                    showToast(SUCCESS_SAVE + destFile.getName());
-                }
-            }
+            boolean Result = GeneralUtils.copyFile(srcFile, destFile);
+            showCopyResult(Result, request != requestCodeEnum.SaveMusic.ordinal(), showResult, srcFile, destFile);
         }
     }
 
-    // ファイルコピー
-    private boolean copyFile(File srcFile, File destFile) {
-        try {
-            InputStream in = new FileInputStream(srcFile);
-            try {
-                OutputStream out = new FileOutputStream(destFile);
-                try {
-                    // Transfer bytes from in to out
-                    byte[] buf = new byte[1024];
-                    int len;
-                    while ((len = in.read(buf)) > 0) {
-                        out.write(buf, 0, len);
-                    }
-                } finally {
-                    out.close();
-                }
-            } finally {
-                in.close();
+    private void showCopyResult(boolean Result, boolean isCopyData, boolean showSuccess, File srcFile, File destFile) {
+        if (Result) {
+            if (showSuccess) {
+                showToast((isCopyData ? SUCCESS_COPY  + srcFile.getName() : SUCCESS_SAVE + destFile.getName()));
             }
-        } catch (IOException ignored) {
+        } else {
             showToast(FAIL_COPY + srcFile.getName());
-            return false;
         }
-        return true;
+
     }
+
+
 
     // フラグメント
     private void addEditorFragment(Bundle savedInstanceState) {

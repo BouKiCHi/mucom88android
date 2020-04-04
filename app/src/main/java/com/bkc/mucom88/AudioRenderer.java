@@ -15,6 +15,7 @@ import android.os.IBinder;
 import androidx.core.app.NotificationCompat;
 import android.util.Log;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 
 public class AudioRenderer extends Service {
@@ -37,9 +38,9 @@ public class AudioRenderer extends Service {
         if (AudioRunner != null) AudioRunner.stopSong();
     }
 
-    public void play(String filename) {
+    public void play(String filepath) {
         stop();
-        startAudioThread(filename);
+        startAudioThread(filepath);
     }
 
     // 結果
@@ -55,8 +56,13 @@ public class AudioRenderer extends Service {
     }
 
     public boolean isPlaying() {
-        if (AudioRunner == null || !AudioRunner.isPlaying()) return false;
-        return true;
+        return AudioRunner != null && AudioRunner.isPlaying();
+    }
+
+    public boolean hasMessage() {
+        if (AudioRunner == null) return false;
+        if (AudioRunner.isPlaying() || AudioRunner.isFailed()) return true;
+        return false;
     }
 
     // 開始処理
@@ -86,7 +92,8 @@ public class AudioRenderer extends Service {
         private boolean Playing = false;
         private boolean Stopping = false;
         private boolean Loading = false;
-        public String Filename;
+        private boolean Failed = false;
+        public String FilePath;
 
         private byte[] mucomInstance = null;
 
@@ -94,13 +101,17 @@ public class AudioRenderer extends Service {
             return Playing;
         }
 
+        public boolean isFailed() {
+            return Failed;
+        }
+
         public byte[] getResult() {
             return getResultFromMucom(mucomInstance);
         }
 
         // 曲再生
-        public void startSong(String filename) {
-            Filename = filename;
+        public void startSong(String filepath) {
+            FilePath = filepath;
             Loading = true;
             start();
         }
@@ -189,10 +200,16 @@ public class AudioRenderer extends Service {
                 // 曲の読み出し
                 if (Loading) {
                     Loading = false;
-                    String directory = getCacheDir().getPath();
                     mucomInstance = getMucomInstance();
-                    playSong(mucomInstance, directory,"song.muc");
-                    updateNotification(Filename, getString(R.string.app_title_long));
+                    File a = new File(FilePath);
+                    String directory = a.getParent();
+                    String filename = a.getName();
+
+                    if (playSong(mucomInstance, directory, filename) < 0) {
+                        Failed = true;
+                        continue;
+                    }
+                    updateNotification(filename, getString(R.string.app_title_long));
                     Playing = true;
                 }
 
@@ -238,9 +255,9 @@ public class AudioRenderer extends Service {
     private AudioThread AudioRunner = null;
 
     // オーディオ再生スレッドの作成
-    private void startAudioThread(String filename) {
+    private void startAudioThread(String filepath) {
         AudioRunner = new AudioThread();
-        AudioRunner.startSong(filename);
+        AudioRunner.startSong(filepath);
     }
 
 
@@ -292,7 +309,7 @@ public class AudioRenderer extends Service {
         builder.setOnlyAlertOnce(true);
         builder.setOngoing(true);
         builder.setAutoCancel(false);
-        builder.setSound(null,0);
+        // builder.setSound(null, AudioManager.STREAM_SYSTEM);
         builder.setPriority(NotificationCompat.PRIORITY_MAX);
         builder.setTicker(title);
         builder.setContentTitle(title);

@@ -1,30 +1,18 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:id="@+id/group_listening"
+    <group android:id="@+id/group_play"
         android:checkableBehavior="single">
 
-    <item
-        android:id="@+id/nav_load_music"
-        android:checkable="false"
-        android:enabled="true"
-        android:title="曲ファイル選択"
-        android:visible="true" />
-    <item
-        android:id="@+id/nav_select_pcm"
-        android:checkable="false"
-        android:enabled="true"
-        android:title="PCMファイル選択"
-        android:visible="true" />
-    <item
-        android:id="@+id/nav_select_voice"
-        android:checkable="false"
-        android:enabled="true"
-        android:title="VOICEファイル選択"
-        android:visible="true" />
+        <item
+            android:id="@+id/nav_load_music"
+            android:checkable="false"
+            android:enabled="true"
+            android:title="曲ファイル選択"
+            android:visible="true" />
     </group>
 
-    <group android:id="@+id/group_create"
+    <group android:id="@+id/group_file"
         android:checkableBehavior="single">
         <item
             android:id="@+id/nav_new_file"
@@ -34,12 +22,25 @@
             android:visible="true" />
 
         <item
-            android:id="@+id/nav_save_file"
+            android:id="@+id/nav_save"
+            android:checkable="false"
+            android:enabled="true"
+            android:title="保存"
+            android:visible="true" />
+
+        <item
+            android:id="@+id/nav_save_as_file"
             android:checkable="false"
             android:enabled="true"
             android:title="名前をつけて保存"
             android:visible="true" />
 
+        <item
+            android:id="@+id/nav_reload"
+            android:checkable="false"
+            android:enabled="true"
+            android:title="再読み込み"
+            android:visible="true" />
     </group>
 
     <group android:id="@+id/group_other"

@@ -20,7 +20,8 @@ public class AudioBaseActivity extends AppCompatActivity implements AudioService
     protected AudioService audioService = new AudioService();
     protected AudioRenderer renderer;
 
-    protected String songFilename = null;
+    protected String songFilepath = null;
+
 
     ////////////////////////////////////////
     // サービス関連
@@ -83,7 +84,7 @@ public class AudioBaseActivity extends AppCompatActivity implements AudioService
         switch(control) {
             case Play:
                 showResultFlag = true;
-                renderer.play(songFilename);
+                renderer.play(songFilepath);
                 break;
             case Stop:
                 renderer.stop();
@@ -187,35 +188,8 @@ public class AudioBaseActivity extends AppCompatActivity implements AudioService
     }
 
 
+
     final int REQUEST_PERMISSION = 1000;
-    //////////////////////////////////////
-    // 外部ストレージ書き込み許可
-    protected void checkExternalStoragePermission() {
-        if(Build.VERSION.SDK_INT < 23) return;
-
-        // 許可済み
-        if (ActivityCompat.checkSelfPermission(this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED) return;
-
-        // 許可を求める
-        requestLocationPermission();
-    }
-
-    // 許可を求める
-    private void requestLocationPermission() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    REQUEST_PERMISSION);
-        } else {
-            showToast("SDカードへのアクセス許可が必要です。");
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,},
-                    REQUEST_PERMISSION);
-        }
-    }
 
     // 結果の受け取り
     @Override
