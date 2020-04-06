@@ -28,6 +28,7 @@ interface
 
 mucomvm::mucomvm(void)
 {
+	Conv = new CODECONVERT();
 	m_flag = VMFLAG_NONE;
 	m_option = 0;
 	m_fastfw = 4;
@@ -824,7 +825,22 @@ void mucomvm::DumpBin(uint16_t adr, uint16_t length)
 }
 
 
+// 変換
 void mucomvm::Msgf(const char *format, ...)
+{
+	char textbf[4096];
+	char outbuf[4096];
+	va_list args;
+	va_start(args, format);
+	vsprintf(textbf, format, args);
+	va_end(args);
+
+	Conv->FromSjis(textbf, outbuf, 4096);
+	membuf->PutStr(outbuf);
+}
+
+// 変換なし
+void mucomvm::MsgfNoConvert(const char *format, ...)
 {
 	char textbf[4096];
 	va_list args;
@@ -1652,7 +1668,7 @@ int mucomvm::AddPlugins(const char *filename, int bootopt)
 	//		bootopt = 起動オプション(未使用)
 	//		終了コード : 0=OK
 	//
-#ifdef USE_PLUGIN
+#ifndef USE_SDL
 	int res;
 	Mucom88Plugin *plg = new Mucom88Plugin;
 	plg->if_mucomvm = (MUCOM88IF_COMMAND)MUCOM88IF_VM_COMMAND;
@@ -1675,7 +1691,7 @@ void mucomvm::FreePlugins(void)
 	//		プラグインをすべて破棄する
 	//
 // C++11ではOS X 10.6用ビルドが通らないので…。
-#ifdef USE_PLUGIN
+#ifndef USE_SDL
 	Mucom88Plugin *plg;
 	for (auto it = begin(plugins); it != end(plugins); ++it) {
 		plg = *it;
@@ -1689,7 +1705,7 @@ void mucomvm::FreePlugins(void)
 
 void mucomvm::NoticePlugins(int cmd, void *p1, void *p2)
 {
-#ifdef USE_PLUGIN
+#ifndef USE_SDL
 	Mucom88Plugin *plg;
 	for (auto it = begin(plugins); it != end(plugins); ++it) {
 		plg = *it;

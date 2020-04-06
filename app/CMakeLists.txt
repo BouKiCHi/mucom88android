@@ -18,6 +18,7 @@ add_library( # Sets the name of the library.
 
         # Provides a relative path to your source file(s).
         src/main/cpp/native-lib.cpp
+
         src/main/cpp/membuf.cpp
         src/main/cpp/adpcm.cpp
         src/main/cpp/md5.c
@@ -25,6 +26,8 @@ add_library( # Sets the name of the library.
         src/main/cpp/cmucom.cpp
         src/main/cpp/mucomvm.cpp
         src/main/cpp/mucomerror.cpp
+        src/main/cpp/callback.cpp
+        src/main/cpp/osdep.cpp
         src/main/cpp/Z80/Z80.cpp
         src/main/cpp/fmgen/file.cpp
         src/main/cpp/fmgen/fmgen.cpp
@@ -32,14 +35,16 @@ add_library( # Sets the name of the library.
         src/main/cpp/fmgen/opm.cpp
         src/main/cpp/fmgen/opna.cpp
         src/main/cpp/fmgen/psg.cpp
-        src/main/cpp/callback.cpp
-        src/main/cpp/osdep.cpp
         src/main/cpp/utils/s98write.cpp
         src/main/cpp/utils/vgmwrite.cpp
         src/main/cpp/utils/wavwrite.cpp
-        src/main/cpp/dummy/osdep_dummy.cpp
+        src/main/cpp/plugin/plugin.cpp
         src/main/cpp/module/mucom_module.cpp
-        )
+        src/main/cpp/dummy/osdep_dummy.cpp
+        src/main/cpp/utils/codeconv/codeconv_dummy.cpp
+    )
+
+
 
     target_include_directories(native-lib PRIVATE
         src/main/cpp
@@ -47,7 +52,15 @@ add_library( # Sets the name of the library.
         src/main/cpp/dummy
         src/main/cpp/Z80
         src/main/cpp/fmgen
+        src/main/cpp/utils
+        src/main/cpp/plugin
+        src/main/cpp/utils/codeconv
     )
+
+    # target_compile_options(native-lib PRIVATE
+    #     -DUSE_ICONV
+    # )
+
 
 
 # Searches for a specified prebuilt library and stores the path as a

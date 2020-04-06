@@ -3,5 +3,14 @@
     <string name="drawer_open">ドロアを開く</string>
     <string name="drawer_close">ドロアを閉じる</string>
     <string name="app_title_long">MUCOM88 for Android</string>
-    <string name="version">Version 200404</string>
+    <string name="version">Version 200406</string>
+    <string name="select_song">曲ファイル選択</string>
+    <string name="new_text">新規</string>
+    <string name="save_text">保存</string>
+    <string name="save_as_text">名前をつけて保存</string>
+    <string name="reload_text">再読み込み</string>
+    <string name="compile_result">コンパイル結果</string>
+    <string name="cache_clear">キャッシュクリア</string>
+    <string name="show_help">説明表示</string>
+    <string name="show_license">license.txt表示</string>
 </resources>

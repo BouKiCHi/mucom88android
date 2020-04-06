@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -115,11 +116,14 @@ public class MainActivity extends AudioBaseActivity implements
         editorSetFile(new File(getCacheDir(), SONG_MUC));
         editorLoad();
 
+        TimeInfo = (TextView) findViewById(R.id.time_text);
+
         audioBindService();
         setViewHandler();
         super.onResume();
     }
 
+    TextView TimeInfo;
     boolean playing = false;
 
     // 終了時
@@ -159,6 +163,7 @@ public class MainActivity extends AudioBaseActivity implements
             showResultFlag = false;
             showResult();
         }
+        TimeInfo.setText(renderer.getTime());
     }
 
     // 設定
@@ -181,9 +186,16 @@ public class MainActivity extends AudioBaseActivity implements
 
     // ビューにセットする
     private void setViewHandler() {
+        int[] buttons = {
+                R.id.play_button,
+                R.id.stop_button,
+                R.id.open_button,
+        };
+
         // ボタン
-        findViewById(R.id.play_button).setOnClickListener(this);
-        findViewById(R.id.stop_button).setOnClickListener(this);
+        for(int i=0; i < buttons.length; i++) {
+            findViewById(buttons[i]).setOnClickListener(this);
+        }
     }
 
     // ボタン
@@ -198,6 +210,9 @@ public class MainActivity extends AudioBaseActivity implements
             case R.id.stop_button:
                 controlRenderer(rendererCommand.Stop);
                 backToEditor();
+                break;
+            case R.id.open_button:
+                openMusicFile();
                 break;
         }
     }
@@ -271,6 +286,9 @@ public class MainActivity extends AudioBaseActivity implements
             case R.id.nav_save:
                 saveMML(false);
                 break;
+            case R.id.nav_show_result:
+                showResult();
+                break;
 
             case R.id.nav_reload:
                 reloadMML();
@@ -281,9 +299,7 @@ public class MainActivity extends AudioBaseActivity implements
                 callSaveDialog(directory, file, requestCodeEnum.SaveMusic);
                 break;
             case R.id.nav_load_music:
-                if (mmlFilePath != null) file = new File(mmlFilePath);
-                if (file == null) file = new File(directory,"song.muc");
-                callFileDialog(directory, file, requestCodeEnum.LoadMusic);
+                openMusicFile();
                 break;
             case R.id.nav_license:
                 showLicense();
@@ -301,6 +317,14 @@ public class MainActivity extends AudioBaseActivity implements
         DrawerLayout mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerLayout.closeDrawers();
         return true;
+    }
+
+    private void openMusicFile() {
+        File directory = Environment.getExternalStorageDirectory();
+        File file = null;
+        if (mmlFilePath != null) file = new File(mmlFilePath);
+        if (file == null) file = new File(directory,"song.muc");
+        callFileDialog(directory, file, requestCodeEnum.LoadMusic);
     }
 
     private File getWorkMucFile() {

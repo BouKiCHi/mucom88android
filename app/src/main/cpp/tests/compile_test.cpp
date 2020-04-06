@@ -3,7 +3,6 @@
 
 #include "mucom_module.h"
 
-
 void WriteWORD(unsigned char *p, unsigned short v) {
     p[0] = (v & 0xff);
     p[1] = ((v>>8) & 0xff);
@@ -46,52 +45,66 @@ void WriteWavHeader(FILE *fp, int frequency, int bits, int channels, long sample
   fseek(fp, 0, SEEK_END);
 }
 
-void recordWav(const char *outputFilename, MucomModule *m,int seconds) {
+void RecordWav(const char *outputFilename, MucomModule *m,int seconds) {
     FILE *fp = fopen(outputFilename,"wb");
     if (fp == NULL) return;
 
     int rate = 44100;
     int bits = 16;
     int channels = 2;
-    long total_samples = 0;
+    long totalSamples = 0;
 
-    WriteWavHeader(fp, rate, bits, channels, total_samples);
+    WriteWavHeader(fp, rate, bits, channels, totalSamples);
 
     long ms = 0;
     int samples = 128;
     short out[512];
     
-    while(total_samples < rate * seconds) {
+    while(totalSamples < rate * seconds) {
         m->Mix(out, samples);
         fwrite(out, samples*4, 1, fp);
-        total_samples += samples;
+        totalSamples += samples;
     }
 
-	WriteWavHeader(fp, rate, bits, channels, total_samples);
+	WriteWavHeader(fp, rate, bits, channels, totalSamples);
     fclose(fp);
 }
 
-int compileWav(const char *filename, const char *wavFilename) {
+int CompileWav(const char *filename, const char *wavFilename) {
     MucomModule *module = new MucomModule();
-    printf("File:%s\n", filename);
+    // module->SetVolume(1.0);
+    printf("Input File:%s\n", filename);
+    printf("Output File:%s\n", wavFilename);
+
     bool r = module->Open(".", filename);
     printf("open\n");
     puts(module->GetResult());
     if (!r) return -1;
     r = module->Play();
     if (!r) return -1;
-    printf("recordWav\n");
-    recordWav(wavFilename, module, 30);
+    printf("RecordWav\n");
+    RecordWav(wavFilename, module, 30);
     printf("close\n");
     module->Close();
+    delete module;
 }
 
 int main(int argc, char *argv[])
 {
-    printf("MucomModule Test\n");
-    if (compileWav("sampl1.muc","sampl1.wav") < 0) return -1; 
-    if (compileWav("sampl2.muc","sampl2.wav") < 0) return -1; 
-    if (compileWav("sampl3.muc","sampl3.wav") < 0) return -1; 
+    char *inputMuc;
+    char outputFilename[512];
+    printf("MucomModule Compile Test\n");
+    if (argc < 2) {
+        printf("Usage compile input.muc\n");
+        return 0;
+    }
+
+    inputMuc = argv[1];
+    strcpy(outputFilename, inputMuc);
+    char *pos = strrchr(outputFilename,'.');
+    const char *extWav = ".wav";
+    if (pos != NULL) strcpy(pos,extWav); else strcat(outputFilename,extWav);
+    if (CompileWav(argv[1], outputFilename) < 0) return -1; 
     return 0;
 }
 

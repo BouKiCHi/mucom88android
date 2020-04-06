@@ -87,6 +87,10 @@ public class AudioRenderer extends Service {
         super.onDestroy();
     }
 
+    public String getTime() {
+        return AudioRunner != null ? AudioRunner.getTime() : "--:--";
+    }
+
 
     public class AudioThread extends Thread {
         private boolean Playing = false;
@@ -120,6 +124,13 @@ public class AudioRenderer extends Service {
             Stopping = true;
         }
 
+        // 秒数
+        public String getTime() {
+            if (!Playing) return "--:--";
+            long sec = atCurrentPosition / atAudioRate;
+            return String.format("%02d:%02d", sec / 60, sec % 60 );
+        }
+
         //////////////////////////////
         // オーディオハードウェア関連
         AudioTrack at = null;
@@ -127,6 +138,9 @@ public class AudioRenderer extends Service {
         private int    atBufPos = 0;
         private int    atMinBuf = 0;
         private int    atUpdateFrame = 0;
+        private long   atCurrentPosition = 0;
+
+        int  atAudioRate = 44100;
 
         private boolean atPlay = false;
 
@@ -134,7 +148,7 @@ public class AudioRenderer extends Service {
         // オーディオ初期化
         private boolean audioInit()
         {
-            int rate = 44100;
+            int rate = atAudioRate;
             int blocks = 4;
 
             int ch_bit = AudioFormat.ENCODING_PCM_16BIT;
@@ -211,6 +225,7 @@ public class AudioRenderer extends Service {
                     }
                     updateNotification(filename, getString(R.string.app_title_long));
                     Playing = true;
+                    atCurrentPosition = 0;
                 }
 
                 // 曲の停止
@@ -238,7 +253,9 @@ public class AudioRenderer extends Service {
 
                     // 現在の再生ポジション
                     long current = at.getPlaybackHeadPosition();
-                    updateFrameCount += current - oldPlaybackPosition;
+                    long diff = current - oldPlaybackPosition;
+                    updateFrameCount += diff;
+                    atCurrentPosition += diff;
                     oldPlaybackPosition = current;
                 }
 

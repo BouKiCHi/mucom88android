@@ -13,3 +13,6 @@ app/release/
 
 app/.cxx/
 fileselect/build/
+app/src/main/cpp/tests/objs
+app/src/main/cpp/tests/modtest
+app/src/main/cpp/tests/compile

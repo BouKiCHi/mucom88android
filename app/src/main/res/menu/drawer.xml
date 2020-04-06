@@ -8,7 +8,7 @@
             android:id="@+id/nav_load_music"
             android:checkable="false"
             android:enabled="true"
-            android:title="曲ファイル選択"
+            android:title="@string/select_song"
             android:visible="true" />
     </group>
 
@@ -18,28 +18,39 @@
             android:id="@+id/nav_new_file"
             android:checkable="false"
             android:enabled="true"
-            android:title="新規"
+            android:title="@string/new_text"
             android:visible="true" />
 
         <item
             android:id="@+id/nav_save"
             android:checkable="false"
             android:enabled="true"
-            android:title="保存"
+            android:title="@string/save_text"
             android:visible="true" />
 
         <item
             android:id="@+id/nav_save_as_file"
             android:checkable="false"
             android:enabled="true"
-            android:title="名前をつけて保存"
+            android:title="@string/save_as_text"
             android:visible="true" />
 
         <item
             android:id="@+id/nav_reload"
             android:checkable="false"
             android:enabled="true"
-            android:title="再読み込み"
+            android:title="@string/reload_text"
+            android:visible="true" />
+    </group>
+
+    <group android:id="@+id/group_compile"
+        android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/nav_show_result"
+            android:checkable="false"
+            android:enabled="true"
+            android:title="@string/compile_result"
             android:visible="true" />
     </group>
 
@@ -49,19 +60,19 @@
             android:id="@+id/nav_clear_cache"
             android:checkable="false"
             android:enabled="true"
-            android:title="キャッシュクリア"
+            android:title="@string/cache_clear"
             android:visible="true" />
         <item
             android:id="@+id/nav_help"
             android:checkable="false"
             android:enabled="true"
-            android:title="説明表示"
+            android:title="@string/show_help"
             android:visible="true" />
         <item
             android:id="@+id/nav_license"
             android:checkable="false"
             android:enabled="true"
-            android:title="license.txt表示"
+            android:title="@string/show_license"
             android:visible="true" />
 
     </group>
